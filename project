@@ -1,0 +1,150 @@
+from tkinter import *  # importing GUI package
+import random  # to generate random integers
+
+GAME_WIDTH = 600  # width of the window
+GAME_HEIGHT = 600  # height of the window
+SPEED = 100  # speed of snake
+SPACE_SIZE = 40  # size of objects
+BODY_PARTS = 1  # starting body part of snake
+SNAKE_COLOR = "#00FF00"  # green color for snake
+FOOD_COLOR = "#371D10"  # hickory color for food
+BACKGROUND_COLOR = "#FFFFC2"  # parchment color for background
+
+
+class Snake:  # to create the snake object
+
+    def __init__(self):  # to initialize the snake's attributes
+        self.body_size = BODY_PARTS  # to show the size of the snake
+        self.coordinates = []  # to place/locate the position of the snake
+        self.circles = []   # the shape of the snake
+
+        for i in range(0, BODY_PARTS):  # to start the snake's body at 0 to number in BODY_PARTS
+            self.coordinates.append([0, 0])  # to add a body part to the existing snake.
+
+        for x, y in self.coordinates:  # to locate the position of the snake
+            circle = canvas.create_oval(x, y, x + SPACE_SIZE, y + SPACE_SIZE, fill=SNAKE_COLOR, tag="snake")  # the properties of what to add on the snake
+            self.circles.append(circle)  # shape of the added body part of the snake
+
+
+class Food:  # to create the food object
+
+    def __init__(self):  # to initialize the food's's attributes
+        x = random.randint(0, (GAME_WIDTH / SPACE_SIZE) - 1) * SPACE_SIZE  # to randomize the location of the snake in width
+        y = random.randint(0, (GAME_HEIGHT / SPACE_SIZE) - 1) * SPACE_SIZE  # to randomize the location of the snake in height
+
+        self.coordinates = [x, y]  # to show the location of the food that is randomized in variables x and y.
+
+        canvas.create_rectangle(x, y, x + SPACE_SIZE, y + SPACE_SIZE, fill=FOOD_COLOR, tag="food")   # the properties of the food shown
+
+
+def next_turn(snake, food): # to define the turning from snake going to food
+    x, y = snake.coordinates[0]  # location of the snake
+
+    if direction == "up":  # movement upward
+        y -= SPACE_SIZE  # to move the snake upward
+    elif direction == "down":  # movement downward
+        y += SPACE_SIZE  # to move the snake downward
+    elif direction == "left":  # movement leftward
+        x -= SPACE_SIZE  # to move the snake leftward
+    elif direction == "right":  # movement rightward
+        x += SPACE_SIZE  # to move the snake rightward
+
+    snake.coordinates.insert(0, (x, y))  # to insert the additional length of the moving snake from 0 to x and y coordinates
+    circle = canvas.create_oval(x, y, x + SPACE_SIZE, y + SPACE_SIZE, fill=SNAKE_COLOR)  # properties of the snake
+    snake.circles.insert(0, circle)  # the shape of the inserted circle for the snakes' length
+
+    if x == food.coordinates[0] and y == food.coordinates[1]:  # if the location of the food is shown
+
+        global score   # to make the score of the game visible throughout the program
+
+        score += 1  # to add 1 to the score
+        label.config(text="Score:{}".format(score))  # to display the score
+        canvas.delete("food")  # to delete the food  that's been eaten
+        food = Food()  # to call food variable
+
+    else:  # when the if statement not satisfied
+        del snake.coordinates[-1]   # the coordinates will be lessened by 1
+        canvas.delete(snake.circles[-1])  # lessen the snakes' circle by 1
+        del snake.circles[-1]   # delete the circle by 1
+
+    if check_collisions(snake):  # if the snake collided with the sides or itself
+        game_over()  # the game is over
+    else:  # when the if statement not satisfied
+        window.after(SPEED, next_turn, snake, food)  # if not collided, the game continues
+
+
+def change_direction(new_direction):  # define the changed direction of snake
+    global direction  # to make the direction of the snake visible throughout the program
+
+    if new_direction == 'left':  # if new direction is left
+        if direction != 'right':  # if new direction is not equal to right
+            direction = new_direction  # make previous direction go to the new direction
+    elif new_direction == 'right':  # if new direction is right
+        if direction != 'left':  # if new direction is not equal to left
+            direction = new_direction  # make previous direction go to the new direction
+    elif new_direction == 'up':  # if new direction is up
+        if direction != 'down':  # if new direction is not equal to down
+            direction = new_direction  # make previous direction go to the new direction
+    elif new_direction == 'down':  # if new direction is down
+        if direction != 'up':  # if new direction is not equal to up
+            direction = new_direction  # make previous direction go to the new direction
+
+
+def check_collisions(snake):  # define the collision of the snake
+    x, y = snake.coordinates[0]  # location of the snake
+
+    if x < 0 or x >= GAME_WIDTH:  # if location x is less than 0 or greater than or equal to GAME_WIDTH
+        return True  # return the value
+    elif y < 0 or y >= GAME_HEIGHT:  # if location y is less than 0 or greater than or equal to GAME_HEIGHT
+        return True  # return the value
+
+    for body_part in snake.coordinates[1:]:  # the number of body part and location of snake
+        if x == body_part[0] and y == body_part[1]:  # if x and y is equal to the body part
+            return True  # return the value
+
+    return False  # when conditional statements does not return true
+
+
+def game_over():  # define when the game is over
+    canvas.delete(ALL)  # delete everything
+    canvas.create_text(canvas.winfo_width() / 2, canvas.winfo_height() / 2,
+                       font=('Comic Sans MS', 70), text="GAME OVER", fill="red", tag="gameover")  # to show the word GAME OVER  when the game is over
+
+
+window = Tk()  # creating the application main window
+window.title("Snake Game Python by Steffi Libid")  # title of main window
+
+score = 0  # initial score of the game
+direction = 'down'  # initial direction of snake
+
+label = Label(window, text="Score:{}".format(score), font=('Comic Sans MS', 35))  # properties of the score
+label.pack()  # organize the score in window
+
+canvas = Canvas(window, bg=BACKGROUND_COLOR, height=GAME_HEIGHT, width=GAME_WIDTH)  # properties of the application main window
+canvas.pack()  # organize the application
+
+window.update()  # show the updated window
+
+window_width = window.winfo_width()  # retrieve window's width
+window_height = window.winfo_height()  # retrieve window's height
+screen_width = window.winfo_screenwidth()  # retrieve window's screenwidth
+screen_height = window.winfo_screenheight()  # retrieve window's screenheight
+
+x = int((screen_width / 2) - (window_width / 2))  # size of x of the window
+y = int((screen_height / 2) - (window_height / 2))  # size of y of the window
+
+window.geometry(f"{window_width}x{window_height}+{x}+{y}")  # set dimensions of the window
+
+window.bind('<Left>', lambda event: change_direction('left'))  # bind the event if left button is pressed
+window.bind('<Right>', lambda event: change_direction('right'))  # bind the event if right button is pressed
+window.bind('<Up>', lambda event: change_direction('up'))  # bind the event if up button is pressed
+window.bind('<Down>', lambda event: change_direction('down'))  # bind the event if down button is pressed
+
+snake = Snake()  # to call snake variable
+food = Food()  # to call food variable
+
+next_turn(snake, food)  # to turn from snake to food
+
+label1 = Label(window, text="PYTHON SNAKE GAME P3 PROJECT", font=('Comic Sans MS', 8), fg='red')  # show the text and its properties to the application
+label1.place(x=10, y=10)  # location of text in label1
+window.mainloop()  # calling the event main loop
